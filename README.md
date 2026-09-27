@@ -5,7 +5,7 @@ An animated, synthwave-style **assembly music video** for the muon telescope fra
 the animation, the music, and the robot vocals that sing the build steps) is generated
 from code in this repository. No stock footage, samples or recorded audio are used.
 
-**▶ [`dist/cosmic-rain.mp4`](dist/cosmic-rain.mp4)**: 1920×1080, 30 fps, 2:35, H.264 + AAC
+**▶ [`dist/cosmic-rain.mp4`](dist/cosmic-rain.mp4)**: 1920×1080, 30 fps, 2:35, H.264 (3.2 Mbps) + AAC stereo, 66 MB
 
 ![poster](dist/poster.jpg)
 

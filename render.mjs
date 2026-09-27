@@ -100,11 +100,17 @@ server.close();
 if (from === 0 && to === total) {
   fs.mkdirSync(path.join(ROOT, 'dist'), { recursive: true });
   const out = path.join(ROOT, 'dist/cosmic-rain.mp4');
-  const r = spawnSync(FFMPEG, [
-    '-y', '-framerate', '30', '-i', path.join(frameDir, '%05d.jpg'), '-i', path.join(ROOT, 'build/audio.wav'),
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '21', '-pix_fmt', 'yuv420p', '-tune', 'film',
-    '-c:a', 'aac', '-b:a', '256k', '-movflags', '+faststart', '-shortest', out,
-  ], { stdio: 'inherit' });
-  if (r.status !== 0) process.exit(r.status || 1);
+  // light temporal denoise (the retro pass adds film grain) + two-pass 3.2 Mbps keeps the file ~66 MB
+  const log = path.join(ROOT, 'build/x264');
+  const common = ['-y', '-v', 'error', '-framerate', '30', '-i', path.join(frameDir, '%05d.jpg')];
+  const vopts = ['-vf', 'hqdn3d=4:3:6:6', '-c:v', 'libx264', '-preset', 'slow', '-b:v', '3200k', '-pix_fmt', 'yuv420p', '-passlogfile', log];
+  for (const pass of [1, 2]) {
+    const tail = pass === 1
+      ? ['-pass', '1', '-an', '-f', 'mp4', '/dev/null']
+      : ['-i', path.join(ROOT, 'build/audio.wav'), '-pass', '2', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', '-shortest', out];
+    const args = pass === 1 ? [...common, ...vopts, ...tail] : [...common, tail[0], tail[1], ...vopts, ...tail.slice(2)];
+    const r = spawnSync(FFMPEG, args, { stdio: 'inherit' });
+    if (r.status !== 0) process.exit(r.status || 1);
+  }
   console.log(`wrote ${out}`);
 }
